@@ -5,6 +5,8 @@ from django.db.models import Sum
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+
 
 def register(request):
    if request.method == 'POST':
@@ -61,6 +63,8 @@ def logout_page(request):
     logout(request)
     messages.success(request, 'Success:Logged out successfully')
     return redirect('/login/')
+
+@login_required(login_url='/login/')
         
 def index(request):
     if request.method == 'POST':
@@ -75,18 +79,19 @@ def index(request):
             return redirect('/')
          
         
-        
-        Transaction.objects.create(amount=amount, description=description)
+
+        Transaction.objects.create(amount=amount, description=description, created_by=request.user)
         messages.success(request, 'Transaction created successfully')
+        # created_by = request.user
         return redirect('/')
     context={
-        'transactions': Transaction.objects.all(),
-        'income': Transaction.objects.filter(amount__gte=0).aggregate(income=Sum('amount'))['income'] or 0,
-        'expense': Transaction.objects.filter(amount__lte=0).aggregate(expense=Sum('amount'))['expense'] or 0,
-        'balance': Transaction.objects.aggregate(balance=Sum('amount'))['balance'] or 0
-    }          
+        'transactions': Transaction.objects.filter(created_by=request.user),
+        'income': Transaction.objects.filter(amount__gte=0, created_by=request.user).aggregate(income=Sum('amount'))['income'] or 0,
+        'expense': Transaction.objects.filter(amount__lte=0, created_by=request.user).aggregate(expense=Sum('amount'))['expense'] or 0,
+        'balance': Transaction.objects.filter(created_by=request.user).aggregate(balance=Sum('amount'))['balance'] or 0
+    }
     return render(request, 'index.html',context)
-
+@login_required(login_url='/login/')
 def deletetransaction(request,uuid):
     Transaction.objects.get(id=uuid).delete()
     return redirect('/')
