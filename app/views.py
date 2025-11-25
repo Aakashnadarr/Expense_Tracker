@@ -65,7 +65,6 @@ def logout_page(request):
     return redirect('/login/')
 
 @login_required(login_url='/login/')
-        
 def index(request):
     if request.method == 'POST':
         print(request.POST)
