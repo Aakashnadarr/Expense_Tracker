@@ -74,6 +74,7 @@ def index(request):
             # return redirect('/')
         description = request.POST.get('description')
         if description.strip() == '':
+            
             messages.info(request, 'Description is required')
             return redirect('/')
          

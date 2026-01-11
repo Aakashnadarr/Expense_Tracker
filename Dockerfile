@@ -1,33 +1,17 @@
-# Use official Python image
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Prevent interactive prompts during package install
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies required for mysqlclient
+# Install MySQL build dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     default-libmysqlclient-dev \
     pkg-config \
-    gcc \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first (for caching)
-COPY requirements.txt /app/
+WORKDIR /app
 
-# Upgrade pip and install Python dependencies
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project
-COPY . /app/
+COPY . .
 
-# Expose Django port
-EXPOSE 8000
-
-# Entrypoint for Django
-ENTRYPOINT ["python", "manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -1,0 +1,30 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: django
+      MYSQL_PASSWORD: django123
+      MYSQL_ROOT_PASSWORD: root123
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: django
+    depends_on:
+      - db
+    environment:
+      DB_NAME: mydb
+      DB_USER: django
+      DB_PASSWORD: django123
+      DB_HOST: db
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql_data:
+  
